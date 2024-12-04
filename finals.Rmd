@@ -37,6 +37,7 @@ library(tidyr)
 
 estimates_table <- read_excel("data/WPP2024_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT.xlsx", sheet = "Estimates", skip = 16, col_types = "text")
 medium_variant_table <- read_excel("data/WPP2024_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT.xlsx", sheet = "Medium variant", skip = 16, col_types = "text")
+
 ```
 **2. Requirement-2 (5 pt)**
 
@@ -50,6 +51,45 @@ You should show at least 5 steps you adopt to clean and/or transform the data. Y
 You could also remove the countries/regions that you are not interested in exploring in this step and re-save a smaller file in the same `data` folder, with a different name so that working with it becomes easier going forward.
 
 Explain your reasoning for each clean up step.
+Takes in col names and gets rid of 
+```{r}
+library(dplyr)
+#Explanation: Takes in a data frames and cleans up the column names 
+rename_cols <- function(df) {
+  estimates_table |>
+    rename_with(~ gsub(" ", "_", .)) |>
+    rename_with(~ gsub("[^[:alnum:]_]", "", .)) |>
+    rename_with(~ tolower(.))
+}
+estimates_clean <- rename_cols(estimates_table)
+medium_clean <- rename_cols(medium_variant_table)
+```
+
+```{r}
+# Filters out rows where 'type' column has 'Label/Separator' to make it organized
+estimates_clean <- estimates_clean[estimates_clean$type != "Label/Separator", ]
+medium_clean <- medium_clean[medium_clean$type != "Label/Separator", ]
+```
+
+```{r}
+clean_cols <- function(df) {
+  df %>% select(-c("variant", "notes", "location_code", "iso3_alphacode", "iso2_alphacode", "sdmx_code", "type", "parent_code"))
+}
+
+estimates_clean <- clean_cols(estimates_clean)
+medium_clean <- clean_cols(medium_clean)
+
+ <- df %>%
+  filter(across(.cols = 4:ncol(.), ~ !grepl("[^0-9.-]", .))) %>%  # Retain rows with only valid numbers
+  mutate(across(.cols = 4:ncol(.), .fns = as.numeric))
+
+```
+
+```{r}
+# Convert columns 4 onward to numeric
+
+
+```
 
 **3.  Requirement-3 (3 pt)**
 Replicate the 6 diagrams shown in the article.  Show only the '2024' projection values where ever you have both '2022' and '2024' displayed. 
