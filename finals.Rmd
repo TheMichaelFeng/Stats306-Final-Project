@@ -130,6 +130,37 @@ Graph 3
 
 Graph 4 
 ```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter for India and China population data from medium_clean
+graph_4_data <- medium_clean %>%
+  filter(region_subregion_country_or_area_ %in% c("India", "China")) %>%
+  mutate(
+    year = as.numeric(year), # Ensure 'year' is numeric
+    population_billions = total_population_as_of_1_july_thousands / 1e6 # Convert thousands to billions
+  )
+
+# Create the line graph
+ggplot(graph_4_data, aes(x = year, y = population_billions, color = region_subregion_country_or_area_)) +
+  geom_line(size = 1) + # Add lines
+  geom_point(size = 1.5) + # Add points
+  scale_color_manual(values = c("India" = "red", "China" = "blue")) + # Match colors to the original graph
+  labs(
+    title = "Population, 1950 to 2100",
+    subtitle = "Projections from 2024 onwards are based on the UN's medium scenario.",
+    x = "Year",
+    y = "Population (billions)",
+    color = "Country"
+  ) +
+  scale_x_continuous(breaks = seq(1950, 2100, by = 10)) + # X-axis ticks every 10 years
+  scale_y_continuous(breaks = seq(0, 2, by = 0.2)) + # Y-axis ticks every 0.2 billion
+  theme_minimal() + # Clean theme
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 10),
+    legend.position = "bottom"
+  )
 
 ```
 
