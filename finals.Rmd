@@ -2,6 +2,8 @@
 title: "DATASCI 306, Fall 2024, Final Group Project"
 author: "Your group number and each team member names"
 output:
+  html_document:
+    df_print: paged
   pdf_document: default
 ---
 
@@ -56,11 +58,13 @@ Takes in col names and gets rid of
 library(dplyr)
 #Explanation: Takes in a data frames and cleans up the column names 
 rename_cols <- function(df) {
-  estimates_table |>
+  df <- df |>
     rename_with(~ gsub(" ", "_", .)) |>
     rename_with(~ gsub("[^[:alnum:]_]", "", .)) |>
     rename_with(~ tolower(.))
+  return(df)
 }
+
 estimates_clean <- rename_cols(estimates_table)
 medium_clean <- rename_cols(medium_variant_table)
 ```
@@ -72,30 +76,45 @@ medium_clean <- medium_clean[medium_clean$type != "Label/Separator", ]
 ```
 
 ```{r}
+#Get rid of some uneccessary rows
 clean_cols <- function(df) {
   df %>% select(-c("variant", "notes", "location_code", "iso3_alphacode", "iso2_alphacode", "sdmx_code", "type", "parent_code"))
 }
 
 estimates_clean <- clean_cols(estimates_clean)
 medium_clean <- clean_cols(medium_clean)
-
- <- df %>%
-  filter(across(.cols = 4:ncol(.), ~ !grepl("[^0-9.-]", .))) %>%  # Retain rows with only valid numbers
-  mutate(across(.cols = 4:ncol(.), .fns = as.numeric))
-
 ```
 
+
 ```{r}
-# Convert columns 4 onward to numeric
-
-
+#Takes in a dataframe and convert n -> N as numeric. Then reapply the omit function to get rid of NA values created
+convert_columns_to_numeric <- function(data, n) {
+  data[(n + 1):ncol(data)] <- lapply(data[(n + 1):ncol(data)], function(x) {
+    as.numeric(as.character(x))
+  })
+  return(data)
+}
+  
+estimates_clean <- convert_columns_to_numeric(estimates_clean, 3)
+medium_clean <- convert_columns_to_numeric(medium_clean, 3)
 ```
 
 **3.  Requirement-3 (3 pt)**
 Replicate the 6 diagrams shown in the article.  Show only the '2024' projection values where ever you have both '2022' and '2024' displayed. 
-Show only the diagrams that are shown on the webpage with default options. 
+Show only the diagrams that are shown on the webpage with default options.
+```{r}
+library(ggplot2)
+library(dplyr)
+library(scales)
+medium_clean |>
+  filter(region_subregion_country_or_area_ == "World") |> mutate(year = as.numeric(year)) |> ggplot(aes(x = year, y = total_population_as_of_1_january_thousands)) + geom_line(group = 1, color = "blue") + geom_point(color = "blue") +
+  labs(
+    title = "Total Population - World",x = "Year", y = "Population (Billions)") + scale_x_continuous(breaks = c(2024, 2040, 2050, 2060, 2070, 2080, 2090, 2100)) +
+  scale_y_continuous(breaks = c(8.5e6, 9e6, 9.5e6, 10e6), labels = c("8.5B", "9B", "9.5B", "10B"))
+```
+```{r}
 
-
+```
 **4.  Requirement-4 (12 pt)**
 
 Select United States related data, and any other country or region(s) of your choosing to perform EDA. Chart at least 12 additional diagrams that may show relationships like correlations, frequencies, trend charts, between various variables with plots of at least 3 different types (line, heatmap, pie, etc.). Every plot should have a title and the x/y axis should have legible labels without any label overlaps for full credit. 
