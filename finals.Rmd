@@ -1,6 +1,6 @@
 ---
 title: "DATASCI 306, Fall 2024, Final Group Project"
-author: "Your group number and each team member names"
+author: "Group Number 25: Nico Cuccarese, Bowei Feng, Christopher Park, Freddy Quarshie"
 output:
   html_document:
     df_print: paged
@@ -87,7 +87,7 @@ medium_clean <- clean_cols(medium_clean)
 
 
 ```{r}
-#Takes in a dataframe and convert n -> N as numeric. Then reapply the omit function to get rid of NA values created
+#Takes in a dataframe and convert n -> N as numeric.
 convert_columns_to_numeric <- function(data, n) {
   data[(n + 1):ncol(data)] <- lapply(data[(n + 1):ncol(data)], function(x) {
     as.numeric(as.character(x))
@@ -97,6 +97,10 @@ convert_columns_to_numeric <- function(data, n) {
   
 estimates_clean <- convert_columns_to_numeric(estimates_clean, 3)
 medium_clean <- convert_columns_to_numeric(medium_clean, 3)
+```
+
+```{r}
+combined_data <- bind_rows(estimates_clean, medium_clean)
 ```
 
 **3.  Requirement-3 (3 pt)**
@@ -119,29 +123,105 @@ Graph 2
 medium_clean |>
   filter(region_subregion_country_or_area_ %in% c("World", "Africa", "Asia", "Europe", "Northern America", "Latin America and the Caribbean")) |> mutate(year = as.numeric(year)) |> ggplot(aes(x = year, y = total_population_as_of_1_january_thousands)) + geom_line(group = 1, color = "blue") + geom_point(color = "blue") +
   labs(
-    title = "Total Population - World",x = "Year", y = "Population (Billions)") + scale_x_continuous(breaks = c(2024, 2050, 2080)) + facet_wrap(~region_subregion_country_or_area_)
+    title = "Total Population - World",x = "Year", y = "Population (Billions)") + scale_x_continuous(breaks = c(2024, 2050, 2080)) + facet_wrap(~region_subregion_country_or_area_, scales = "free_y")
 ```
 Graph 3
 ```{r}
-
+library(ggplot2)
+complete_data <- bind_rows(estimates_clean, medium_clean)
+complete_data |>
+  select(year, region_subregion_country_or_area_, total_fertility_rate_live_births_per_woman) |>
+  filter(region_subregion_country_or_area_ %in% c("World", "Africa", "Asia", "Europe", "Northern America", "Latin America and the Caribbean")) |>
+  ggplot(aes(x = as.numeric(year), y = total_fertility_rate_live_births_per_woman, color = region_subregion_country_or_area_)) +
+  geom_line(size = .9) + # Thicker lines for better visibility
+  geom_point(size = .3) + # Slightly larger points for clarity
+  labs(
+    title = "Total Fertility Rate Over Time",
+    x = "Year",
+    y = "Total Fertility Rate (Live Births per Woman)",
+    color = "Region"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5), 
+    legend.position = "bottom",
+    legend.title = element_text(size = 14), 
+    legend.text = element_text(size = 12), 
+    axis.text.x = element_text(size = 12), 
+    axis.text.y = element_text(size = 12) 
+  ) +
+  scale_y_continuous(expand = c(0.02, 0.02)) + # Remove excessive padding on y-axis
+  guides(color = guide_legend(nrow = 2)) # Make the legend more compact
 
 
 ```
 
 Graph 4 
 ```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter for India and China population data from combined_data
+graph_4_data <- complete_data %>%
+  filter(region_subregion_country_or_area_ %in% c("India", "China")) %>%
+  mutate(
+    year = as.numeric(year), # Ensure 'year' is numeric
+    population_billions = total_population_as_of_1_july_thousands / 1e6 # Convert thousands to billions
+  )
+
+# Create the line graph
+ggplot(graph_4_data, aes(x = year, y = population_billions, color = region_subregion_country_or_area_)) +
+  geom_line(size = 1.2) + # Add lines with increased thickness
+  geom_point(size = 2) + # Add larger points for better visibility
+  scale_color_manual(values = c("India" = "red", "China" = "blue")) + # Custom colors for India and China
+  labs(
+    title = "Population Trends of India and China (1950 to 2100)",
+    subtitle = "Projections from 2024 onwards based on UN's medium scenario.",
+    x = "Year",
+    y = "Population (Billions)",
+    color = "Country"
+  ) +
+  scale_x_continuous(breaks = seq(1950, 2100, by = 10), expand = c(0, 0)) + # X-axis ticks every 10 years
+  scale_y_continuous(breaks = seq(0, 2, by = 0.2), expand = c(0, 0)) + # Y-axis ticks every 0.2 billion
+  theme_minimal(base_size = 14) + # Minimal theme with a larger base font size
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"), # Center and bold title
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"), # Center and italicize subtitle
+    axis.text.x = element_text(size = 12), # Larger x-axis text
+    axis.text.y = element_text(size = 12), # Larger y-axis text
+    legend.position = "bottom", # Place legend at the bottom
+    legend.title = element_text(size = 12), # Larger legend title
+    legend.text = element_text(size = 10) # Larger legend labels
+  )
 
 ```
 
 Graph 5
 
 ```{r}
-#needs fixed
 countries <- c("World", "Africa", "Asia", "Europe", "Northern America", "Latin America and the Caribbean")
+
 estimates_clean |> 
   select(year, life_expectancy_at_birth_both_sexes_years, region_subregion_country_or_area_) |>
   filter(region_subregion_country_or_area_ %in% countries) |>
-  ggplot(aes(x = as.numeric(year),  life_expectancy_at_birth_both_sexes_years)) + geom_point()
+  ggplot(aes(
+    x = as.numeric(year), 
+    y = life_expectancy_at_birth_both_sexes_years, 
+    color = region_subregion_country_or_area_
+  )) +
+  geom_point() +
+  labs(
+    x = "Year",
+    y = "Life Expectancy (Years)",
+    color = "Region"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", # Move the legend to the bottom
+    legend.title = element_text(size = 10), # Adjust legend title size
+    legend.text = element_text(size = 8) # Adjust legend text size
+  )
+
 ```
 
 Graph 6
@@ -150,7 +230,7 @@ estimates_clean |>
   filter(region_subregion_country_or_area_ == "Ukraine") |>
   select(year, net_number_of_migrants_thousands) |>
   ggplot(aes(x = as.numeric(year), y = net_number_of_migrants_thousands))+ 
-  geom_point() + geom_line() + scale_x_continuous(breaks = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2023)) + labs(title = "Annual net migration in Ukraine, 1950 to 2023", x = "Year", y = "Net Migration") + scale_y_continuous(breaks = c(0, -2000, -4000), labels = c("0", "-2 Million", "- 4 million"))
+  geom_point() + geom_line() + scale_x_continuous(breaks = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2023)) + labs(title = "Annual net migration in Ukraine, 1950 to 2023", x = "Year", y = "Net Migration") + scale_y_continuous(breaks = c(0, -2000, -4000), labels = c("0", "-2 Million", "-4 million"))
 
 ```
 **4.  Requirement-4 (12 pt)**
