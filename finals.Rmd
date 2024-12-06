@@ -238,7 +238,125 @@ estimates_clean |>
 Select United States related data, and any other country or region(s) of your choosing to perform EDA. Chart at least 12 additional diagrams that may show relationships like correlations, frequencies, trend charts, between various variables with plots of at least 3 different types (line, heatmap, pie, etc.). Every plot should have a title and the x/y axis should have legible labels without any label overlaps for full credit. 
 
 Summarize your interpretations after each chart.
+**Let's analyze different variables based on gender**
+Graph 1
+```{r}
+estimates_clean |>
+  select(year, region_subregion_country_or_area_, male_population_as_of_1_july_thousands, female_population_as_of_1_july_thousands) |>
+  filter(region_subregion_country_or_area_ == "World") |>
+  ggplot(aes(x = as.numeric(year), y = male_population_as_of_1_july_thousands)) +
+  geom_line() + geom_point() +
+  labs(
+    title = "Male Population Over Time",
+    x = "Year",
+    y = "Male Population (Thousands)"
+  ) +
+  theme_minimal()
+```
+Graph 2
+```{r}
+estimates_clean |>
+  select(year, region_subregion_country_or_area_, male_population_as_of_1_july_thousands, female_population_as_of_1_july_thousands) |>
+  filter(region_subregion_country_or_area_ == "World") |>
+  ggplot(aes(x = as.numeric(year), y = female_population_as_of_1_july_thousands)) +
+  geom_line() + geom_point() +
+  labs(
+    title = "Female Population Over Time",
+    x = "Year",
+    y = "Male Population (Thousands)"
+  ) +
+  theme_minimal()
+```
+What percentage of the world is male/female (pie chart with percentage of male and females in 2024?)
+Graph 3
+```{r}
+# Create the pie chart with labels for male and female populations
+library(ggplot2)
+library(dplyr)
 
+# Create the pie chart with labels for male and female populations in billions
+estimates_clean |>
+  filter(year == "2023", region_subregion_country_or_area_ == "World") |>
+  pivot_longer(
+    cols = c(male_population_as_of_1_july_thousands, female_population_as_of_1_july_thousands),
+    names_to = "Gender", values_to = "Population"
+  ) |>
+  mutate(
+    Gender = ifelse(Gender == "male_population_as_of_1_july_thousands", "Male", "Female"),
+    Population_Billions = Population / 1e6,  # Convert thousands to billions
+    Label = paste0(Gender, ": ", round(Population_Billions, 2), "B")  # Format label with "B"
+  ) |>
+  ggplot(aes(x = "", y = Population, fill = Gender)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  geom_text(aes(label = Label), position = position_stack(vjust = 0.5)) +
+  labs(
+    title = "Male and Female Population in the World (2023)",
+    x = NULL,
+    y = NULL
+  ) +
+  scale_fill_manual(values = c("Male" = "#56B4E9", "Female" = "#F0E442")) +
+  theme_void()
+
+
+```
+What percentage of the world is male/female (pie chart with percentage of male and female based on UN estimates in 2100?)
+Graph 4
+```{r}
+medium_clean |> filter(year == "2100", region_subregion_country_or_area_ == "World") |> pivot_longer(
+    cols = c(male_population_as_of_1_july_thousands, female_population_as_of_1_july_thousands), names_to = "Gender", values_to = "Population") |> mutate(Gender = ifelse(Gender == "male_population_as_of_1_july_thousands", "Male", "Female"),Population_Billions = Population / 1e6,  # Convert thousands to billions
+    Label = paste0(Gender, ": ", round(Population_Billions, 2), "B")  # Format label with "B"
+  ) |>
+  ggplot(aes(x = "", y = Population, fill = Gender)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  geom_text(aes(label = Label), position = position_stack(vjust = 0.5)) +
+  labs(
+    title = "Male and Female Population in the World (2100)",
+    x = NULL,
+    y = NULL
+  ) +
+  scale_fill_manual(values = c("Male" = "#56B4E9", "Female" = "#F0E442")) +
+  theme_void()
+```
+What about in different countries with different cultural stigmas around gender preference (2024)?
+Graph 5
+```{r}
+
+
+```
+What about in the future (Same graph as above but for 2100)?
+Graph 6
+```{r}
+
+
+```
+What about life expectabncy?
+Graph 7
+```{r}
+
+
+```
+Graph 8
+```{r}
+
+```
+Graph 9
+```{r}
+
+```
+Graph 10
+```{r}
+
+```
+Graph 11
+```{r}
+
+```
+Graph 12
+```{r}
+
+```
 
 **5. Requirement-5 (2 pt)**
 Having developed a strong understanding of your data, you'll now create a machine learning (ML) model to predict a specific metric. This involves selecting the most relevant variables from your dataset.
